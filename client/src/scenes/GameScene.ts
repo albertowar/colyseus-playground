@@ -86,10 +86,20 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    elapsedTime = 0;
+    fixedTimeStep = 1000 / 60;
+
     update(time: number, delta: number): void {
-      // game loop
       if (!this.currentPlayer) { return; }
 
+      this.elapsedTime += delta;
+      while (this.elapsedTime >= this.fixedTimeStep) {
+          this.elapsedTime -= this.fixedTimeStep;
+          this.fixedTick();
+      }
+    }
+
+    fixedTick() {
       const velocity = 2;
       this.inputPayload.left = this.cursorKeys.left.isDown;
       this.inputPayload.right = this.cursorKeys.right.isDown;

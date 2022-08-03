@@ -1,10 +1,11 @@
 import { Room, Client } from "colyseus";
-import { MyRoomState, Player } from "./schema/MyRoomState";
+import { InputData, MyRoomState, Player } from "./schema/MyRoomState";
 
 const mapWidth = 800;
 const mapHeight = 600;
 
 export class MyRoom extends Room<MyRoomState> {
+  private fixedTimeStep = 1000 / 60;
 
   onCreate (options: any) {
     this.setState(new MyRoomState());
@@ -12,29 +13,23 @@ export class MyRoom extends Room<MyRoomState> {
     this.state.mapWidth = mapWidth;
     this.state.mapHeight = mapHeight;
 
-    this.onMessage("*", (client, input) =>  {
-      console.log("Received message");
-    });
-
     // Handle player input
     this.onMessage(0, (client, input) => {
       // get reference to the player who sent the message
       const player = this.state.players.get(client.sessionId);
-      const velocity = 2;
 
-      if (input.left && player.x > 0) {
-        player.x -= velocity;
+      player.inputQueue.push(input);
+    });
 
-      } else if (input.right && player.x < mapWidth) {
-        player.x += velocity;
-      }
+    let elapsedTime = 0;
 
-      if (input.up && player.y > 0) {
-        player.y -= velocity;
+    this.setSimulationInterval((deltaTime) => {
+        elapsedTime += deltaTime;
 
-      } else if (input.down && player.y < mapHeight ) {
-        player.y += velocity;
-      }
+        while (elapsedTime >= this.fixedTimeStep) {
+            elapsedTime -= this.fixedTimeStep;
+            this.fixedTick(this.fixedTimeStep);
+        }
     });
   }
 
@@ -60,5 +55,32 @@ export class MyRoom extends Room<MyRoomState> {
 
   onDispose() {
     console.log("room", this.roomId, "disposing...");
+  }
+
+  fixedTick(timeStep: number) {
+    const velocity = 2;
+
+    this.state.players.forEach(player => {
+      let input: InputData;
+
+      // dequeue player inputs
+      while (input = player.inputQueue.shift()) {
+        if (input.left) {
+          player.x -= velocity;
+
+        } else if (input.right) {
+          player.x += velocity;
+        }
+
+        if (input.up) {
+          player.y -= velocity;
+
+        } else if (input.down) {
+          player.y += velocity;
+        }
+
+        player.tick = input.tick;
+      }
+    });
   }
 }
