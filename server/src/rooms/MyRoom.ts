@@ -9,8 +9,8 @@ export class MyRoom extends Room<MyRoomState> {
   onCreate (options: any) {
     this.setState(new MyRoomState());
 
-    this.state.mapWidth = 800;
-    this.state.mapHeight = 600;
+    this.state.mapWidth = mapWidth;
+    this.state.mapHeight = mapHeight;
 
     this.onMessage("*", (client, input) =>  {
       console.log("Received message");
@@ -22,17 +22,17 @@ export class MyRoom extends Room<MyRoomState> {
       const player = this.state.players.get(client.sessionId);
       const velocity = 2;
 
-      if (input.left) {
+      if (input.left && player.x > 0) {
         player.x -= velocity;
 
-      } else if (input.right) {
+      } else if (input.right && player.x < mapWidth) {
         player.x += velocity;
       }
 
-      if (input.up) {
+      if (input.up && player.y > 0) {
         player.y -= velocity;
 
-      } else if (input.down) {
+      } else if (input.down && player.y < mapHeight ) {
         player.y += velocity;
       }
     });
