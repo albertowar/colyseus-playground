@@ -80,6 +80,6 @@ export class GameScene extends Phaser.Scene {
       this.inputPayload.right = this.cursorKeys.right.isDown;
       this.inputPayload.up = this.cursorKeys.up.isDown;
       this.inputPayload.down = this.cursorKeys.down.isDown;
-      //this.room.send(0, this.inputPayload);
+      this.room.send(0, this.inputPayload);
     }
 }
